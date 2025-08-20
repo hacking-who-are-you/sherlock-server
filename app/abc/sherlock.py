@@ -31,5 +31,5 @@ class Sherlock:
         )
         return MCPServerStdio(
             params={"command": "node", "args": [path, name]},
-            client_session_timeout_seconds=300,
+            client_session_timeout_seconds=1000,
         )

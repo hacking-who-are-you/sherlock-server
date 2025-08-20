@@ -1,3 +1,4 @@
+from app.routers import trafficLog
 import dotenv
 
 dotenv.load_dotenv()
@@ -22,7 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(test.router)
-app.include_router(trafficAnalysis.router)
+app.include_router(trafficLog.router)
 app.include_router(users.router)
 app.include_router(items.router)
 app.include_router(

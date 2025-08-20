@@ -7,7 +7,7 @@ from .routers import items, test, users
 app = FastAPI()
 
 
-app.include_router(test.router, prefix="/test")
+app.include_router(test.router)
 app.include_router(users.router)
 app.include_router(items.router)
 app.include_router(

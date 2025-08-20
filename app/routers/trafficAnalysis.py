@@ -5,10 +5,11 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/trafficAnalysis")
+
 
 # 수집되는 HTTP 로그(평면 JSON) 모델.
 class IncomingHttpLog(BaseModel):
@@ -39,8 +40,27 @@ class IncomingHttpLog(BaseModel):
     process_time_ms: Optional[int] = Field(default=None)
 
 
+@router.get("/logs")
+async def get_logs(date: str = Query(..., description="Date in YYYY-MM-DD format")):
+    log_dir = os.getenv("TRAFFIC_LOG_DIR") or "./traffic_logs"
+    log_file_path = os.path.join(log_dir, f"{date}.jsonl")
+
+    if not os.path.exists(log_file_path):
+        return {"error": "Log file not found for the given date."}
+
+    try:
+        with open(log_file_path, "r", encoding="utf-8") as log_file:
+            logs = [json.loads(line) for line in log_file]
+        return {"logs": logs}
+    except Exception as e:
+        logging.error(f"Error reading log file: {e}")
+        return {"error": "An error occurred while reading the log file."}
+
+
 @router.post("/logs")
-async def ingest_logs(payload: Union[IncomingHttpLog, List[IncomingHttpLog]] = Body(...)) -> Dict[str, Any]:
+async def ingest_logs(
+    payload: Union[IncomingHttpLog, List[IncomingHttpLog]] = Body(...),
+) -> Dict[str, Any]:
     logs = payload if isinstance(payload, list) else [payload]
     ts = datetime.now(timezone.utc).isoformat()
     records = []
@@ -51,7 +71,11 @@ async def ingest_logs(payload: Union[IncomingHttpLog, List[IncomingHttpLog]] = B
 
     log_dir = os.getenv("TRAFFIC_LOG_DIR") or "./traffic_logs"
     os.makedirs(log_dir, exist_ok=True)
-    path = os.path.join(log_dir, f"{datetime.now(timezone.utc).date().isoformat()}.jsonl")
+    path = os.path.join(
+        log_dir, f"{datetime.now(timezone.utc).date().isoformat()}.jsonl"
+    )
 
-    await asyncio.to_thread(lambda: open(path, "a", encoding="utf-8").writelines(records))
+    await asyncio.to_thread(
+        lambda: open(path, "a", encoding="utf-8").writelines(records)
+    )
     return {"accepted": len(records)}

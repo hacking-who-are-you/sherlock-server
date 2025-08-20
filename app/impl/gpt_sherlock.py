@@ -1,17 +1,14 @@
-import os
 from app.abc.sherlock import Sherlock
 import requests
-from openai import AsyncOpenAI
 
 
 class GptSherlock(Sherlock):
     def __init__(self, url: str):
         super().__init__(url)
-        self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     async def run(self) -> str:
         res = requests.get(self.url)
-        response = await self.client.chat.completions.create(
+        response = await self.gpt.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {

@@ -5,6 +5,7 @@ from openai import AsyncOpenAI
 import nmap
 import socket
 import json
+from urllib.parse import urlparse
 
 
 class NMapSherlock(Sherlock):
@@ -13,7 +14,8 @@ class NMapSherlock(Sherlock):
         self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     async def run(self) -> str:
-        ip = socket.gethostbyname(self.url)
+        hostname = urlparse(self.url).hostname
+        ip = socket.gethostbyname(hostname)
         nm = nmap.PortScanner()
         result = nm.scan(ip, "22-443")
 

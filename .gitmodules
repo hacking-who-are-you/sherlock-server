@@ -1,0 +1,3 @@
+[submodule "mcp-for-security"]
+	path = mcp-for-security
+	url = https://github.com/cyproxio/mcp-for-security.git

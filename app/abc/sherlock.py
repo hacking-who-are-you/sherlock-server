@@ -1,4 +1,3 @@
-from openai import AsyncOpenAI
 import os
 from agents import Agent
 from agents.mcp import MCPServerStdio
@@ -32,7 +31,6 @@ class SherlockOutput(BaseModel):
 
 class Sherlock:
     def __init__(self):
-        self.gpt = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.mcp_server = None
         self.agent = Agent(
             name="assistant",

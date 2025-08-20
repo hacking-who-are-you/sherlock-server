@@ -1,3 +1,7 @@
+import dotenv
+
+dotenv.load_dotenv()
+
 from fastapi import Depends, FastAPI
 
 from .dependencies import get_query_token, get_token_header

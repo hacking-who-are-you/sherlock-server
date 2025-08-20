@@ -10,10 +10,17 @@ class TestRequest(BaseModel):
     url: str
 
 
+sherlocks = [
+    # GptSherlock(),
+    NMapSherlock(),
+]
+
+
 @router.post("/")
 async def test(request: TestRequest):
-    sherlocks = [GptSherlock(request.url), NMapSherlock(request.url)]
+    for sherlock in sherlocks:
+        await sherlock.ready()
     return {
         "url": request.url,
-        "response": [await sherlock.run() for sherlock in sherlocks],
+        "response": [await sherlock.run(request.url) for sherlock in sherlocks],
     }

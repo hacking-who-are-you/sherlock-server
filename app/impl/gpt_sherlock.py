@@ -3,11 +3,11 @@ import requests
 
 
 class GptSherlock(Sherlock):
-    def __init__(self, url: str):
-        super().__init__(url)
+    def __init__(self):
+        super().__init__()
 
-    async def run(self) -> str:
-        res = requests.get(self.url)
+    async def run(self, url: str) -> str:
+        res = requests.get(url)
         response = await self.gpt.chat.completions.create(
             model="gpt-4o-mini",
             messages=[

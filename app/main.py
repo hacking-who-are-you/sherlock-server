@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .dependencies import get_query_token, get_token_header
 from .internal import admin
-from .routers import items, test, users
+from .routers import items, test, users, trafficAnalysis
 
 app = FastAPI()
 
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 app.include_router(test.router)
+app.include_router(trafficAnalysis.router)
 app.include_router(users.router)
 app.include_router(items.router)
 app.include_router(

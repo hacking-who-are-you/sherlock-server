@@ -20,14 +20,15 @@ class NMapSherlock(Sherlock):
         result = nm.scan(ip, "22-443")
 
         open_ports = []
-        for port, service in result["scan"][ip]["tcp"].items():
-            if service["state"] == "open":
-                open_ports.append(
-                    {
-                        "port": port,
-                        "service": service["name"],
-                    }
-                )
+        if ip in result["scan"]:
+            for port, service in result["scan"][ip]["tcp"].items():
+                if service["state"] == "open":
+                    open_ports.append(
+                        {
+                            "port": port,
+                            "service": service["name"],
+                        }
+                    )
 
         response = await self.client.chat.completions.create(
             model="gpt-4o-mini",
@@ -43,20 +44,21 @@ class NMapSherlock(Sherlock):
 
 {json.dumps(result)}
 
-For each open port/service, provide:
-1. A description of potential vulnerabilities
-2. The affected endpoint (host, port, service)
-3. Evidence from the scan
-4. Severity rating (Critical, High, Medium, Low) and a brief rationale
-5. Remediation steps
-6. References to OWASP ASVS, WSTG, CAPEC, CWE (as clickable links)
+각 열린 포트/서비스에 대해서 다음 정보를 제공해주세요:
+1. 잠재적인 취약점에 대한 설명
+2. 영향을 받는 엔드포인트 (host, port, service)
+3. 스캔 결과에서 나온 증거
+4. 심각도 평가 (Critical, High, Medium, Low) 그리고 간단한 이유
+5. 수정 방법
+6. OWASP ASVS, WSTG, CAPEC, CWE 참조 (클릭 가능한 링크)
 
-Prioritize findings by risk to the business, and highlight any issues that are currently being exploited in the wild (if known).
+위험도를 기준으로 찾은 것을 우선 순위로 매기고, 현재 취약점이 공격당하고 있는지 여부를 강조해주세요.
 
-Based on the following open ports and services detected:
+다음 열린 포트와 서비스를 기반으로 합니다:
 {json.dumps(open_ports)}
 
-Return the results as a well-formatted HTML snippet with line breaks (<br>) separating each section.
+결과를 잘 포맷팅된 HTML 스니펫으로 반환해주세요. 각 섹션은 줄바꿈 (<br>)으로 구분해주세요.
+마크다운 포맷 기호는 추가하지 마세요.
 """,
                 },
             ],

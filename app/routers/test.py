@@ -24,5 +24,7 @@ async def test(request: TestRequest):
         await sherlock.ready()
     return {
         "url": request.url,
-        "response": [await sherlock.run(request.url) for sherlock in sherlocks],
+        "response": sum(
+            [await sherlock.run(request.url) for sherlock in sherlocks], []
+        ),
     }

@@ -2,6 +2,32 @@ from openai import AsyncOpenAI
 import os
 from agents import Agent
 from agents.mcp import MCPServerStdio
+from pydantic import BaseModel
+from typing import Literal, List
+
+""" 
+interface VulnerabilityResult {
+  id: string;
+  type: string;
+  severity: "critical" | "high" | "medium" | "low" | "info";
+  description?: string;
+  url: string;
+  evidence?: string;
+  recommendation?: string;
+  aiAnalysis?: string;
+}
+"""
+
+
+class SherlockOutput(BaseModel):
+    id: str
+    type: str
+    severity: Literal["critical", "high", "medium", "low", "info"]
+    description: str | None = None
+    url: str
+    evidence: str | None = None
+    recommendation: str | None = None
+    aiAnalysis: str | None = None
 
 
 class Sherlock:
@@ -9,7 +35,9 @@ class Sherlock:
         self.gpt = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.mcp_server = None
         self.agent = Agent(
-            name="assistant", instructions="you are a cybersecurity expert"
+            name="assistant",
+            instructions="you are a cybersecurity expert",
+            output_type=List[SherlockOutput],
         )
 
     async def ready(self):

@@ -2,6 +2,8 @@ from app.abc.sherlock import Sherlock
 import nmap
 import socket
 import json
+from bs4 import BeautifulSoup
+import requests
 from urllib.parse import urlparse
 from agents import Runner
 
@@ -13,13 +15,20 @@ class SqlMapSherlock(Sherlock):
         self.agent.mcp_servers.append(self.mcp_server)
 
     async def run(self, url: str) -> str:
+        res = requests.get(url)
+        soup = BeautifulSoup(res.text, "html.parser")
+        actions = [str(form) for form in soup.find_all("form")]
+        print(actions)
         result = await Runner.run(
             self.agent,
             f"""
             '{url}'이 잠재적인 취약점이 있는 서비스라고 생각되면 취약점을 분석한 후에 결과를 알려주세요.
-            다만 False Positive는 최대한 없도록 취약점이 없는데 있는 것처럼 생각하는 것은 지양해주세요.
+            다만 False Positive는 최대한 없도록 도구를 사용해서 취약점이 확인되지 않은 경우에는 취약점이 없는 것으로 판단해주세요.
 
-            주어진 서비스에 대해 다음 결과를 알려주세요:
+            또한 아래는 주어진 서비스의 소스코드에 있는 form들 입니다:
+            {actions}
+
+            취약점에 대해 다음 결과를 알려주세요:
             1. 잠재적인 취약점에 대한 설명
             2. 영향을 받는 엔드포인트 (host, port, service)
             3. 스캔 결과에서 나온 증거
@@ -28,6 +37,7 @@ class SqlMapSherlock(Sherlock):
             6. OWASP ASVS, WSTG, CAPEC, CWE 참조 (클릭 가능한 링크)
 
             위험도를 기준으로 찾은 것을 우선 순위로 매기고, 현재 취약점이 공격당하고 있는지 여부를 강조해주세요.
+            취약점이 발견되지 않은 경우에는 아무것도 출력하지 마세요.
             """,
         )
         print(result)

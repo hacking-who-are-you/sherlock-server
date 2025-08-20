@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Union
 from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel, Field
 
-router = APIRouter(prefix="/trafficLog")
+router = APIRouter(prefix="/traffic")
 
 
 # 수집되는 HTTP 로그(평면 JSON) 모델.

@@ -12,7 +12,7 @@ from .routers import items, test, users
 app = FastAPI()
 
 
-origins = ["http://localhost:5173"]
+origins = ["http://localhost:5173", "https://hacking-who-are-you.github.io"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

@@ -549,6 +549,12 @@ wheels = [
 ]
 
 [[package]]
+name = "python-nmap"
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/1b/8e6b3d1461331e4e8600faf099e7c62ba3c1603987dafdd558681fb8ba37/python-nmap-0.7.1.tar.gz", hash = "sha256:f75af6b91dd8e3b0c31f869db32163f62ada686945e5b7c25f84bc0f7fad3b64", size = 44366, upload-time = "2021-10-26T18:40:26.488Z" }
+
+[[package]]
 name = "pyyaml"
 version = "6.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -725,6 +731,7 @@ dependencies = [
     { name = "fastapi", extra = ["standard"] },
     { name = "openai" },
     { name = "pydantic" },
+    { name = "python-nmap" },
     { name = "requests" },
 ]
 
@@ -733,6 +740,7 @@ requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.116.1" },
     { name = "openai", specifier = ">=1.100.2" },
     { name = "pydantic", specifier = ">=2.11.7" },
+    { name = "python-nmap", specifier = ">=0.7.1" },
     { name = "requests", specifier = ">=2.32.5" },
 ]
 

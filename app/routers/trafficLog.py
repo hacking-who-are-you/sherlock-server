@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 import re
 import smtplib
+import requests
 
 from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel, Field
@@ -124,6 +125,21 @@ async def ingest_logs(
                 f"Threat method: {d['method']}\n"
                 f"Threat status code: {d['status_code']}\n",
             )
+
+        watson_response = requests.post(
+            os.getenv("WATSON_API_URL"),
+            data={
+                "client_ip": d["client_ip"],
+                "method": d["method"],
+                "url": d["url"],
+                "headers": d["headers"],
+                "request_body": d["request_body"],
+                "status_code": d["status_code"],
+                "process_time_ms": d["process_time_ms"],
+            },
+        )
+        watson_data = watson_response.json()
+        d["watson"] = watson_data
         records.append(json.dumps(d, ensure_ascii=False, separators=(",", ":")) + "\n")
 
     log_dir = os.getenv("TRAFFIC_LOG_DIR") or "./traffic_logs"

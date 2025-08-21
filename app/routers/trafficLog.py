@@ -4,11 +4,49 @@ import logging
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
+import re
 
 from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/traffic")
+
+ATTACK_PATTERNS = {
+    "xss": [
+        re.compile(r"""<script|onerror|onload|javascript:|<svg|alert""", re.IGNORECASE),
+    ],
+    "sqli": [
+        re.compile(
+            r"""(--|\#|/\*|' OR 1=1|UNION\s+SELECT|SLEEP\s*\(|BENCHMARK\s*\()""",
+            re.IGNORECASE,
+        ),
+    ],
+    "pathtraversal": [re.compile(r"""\.\.[/\\]|%2e%2e""")],
+}
+
+
+def check_for_threats(url: str, body: str) -> dict:
+    """
+    Checks the given URL and body against a set of attack patterns.
+
+    Args:
+        url: The request URL.
+        body: The request body.
+
+    Returns:
+        A dictionary indicating which threat types were detected.
+    """
+    detected_threats = {"xss": 0, "sqli": 0, "pathtraversal": 0}
+
+    text_to_check = url + " " + body
+
+    for threat_type, patterns in ATTACK_PATTERNS.items():
+        for pattern in patterns:
+            if pattern.search(text_to_check):
+                detected_threats[threat_type] = 1
+                break
+
+    return detected_threats
 
 
 # 수집되는 HTTP 로그(평면 JSON) 모델.
@@ -67,6 +105,7 @@ async def ingest_logs(
     for log in logs:
         d = log.model_dump() if hasattr(log, "model_dump") else log.dict()
         d["received_at"] = ts
+        d["threats"] = check_for_threats(d["url"], d["request_body"])
         records.append(json.dumps(d, ensure_ascii=False, separators=(",", ":")) + "\n")
 
     log_dir = os.getenv("TRAFFIC_LOG_DIR") or "./traffic_logs"

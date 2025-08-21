@@ -5,6 +5,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 import re
+import smtplib
 
 from fastapi import APIRouter, Body, Query
 from pydantic import BaseModel, Field
@@ -106,6 +107,23 @@ async def ingest_logs(
         d = log.model_dump() if hasattr(log, "model_dump") else log.dict()
         d["received_at"] = ts
         d["threats"] = check_for_threats(d["url"], d["request_body"])
+        if sum(d["threats"].values()) > 0:
+            email_sender = smtplib.SMTP(
+                os.getenv("EMAIL_SERVER"), os.getenv("EMAIL_PORT")
+            )
+            email_sender.starttls()
+            email_sender.login(os.getenv("EMAIL_USER"), os.getenv("EMAIL_PASSWORD"))
+            email_sender.sendmail(
+                os.getenv("EMAIL_FROM"),
+                os.getenv("EMAIL_TO"),
+                f"Threat detected: {d['url']}\n"
+                f"Threat type: {d['threats']}\n"
+                f"Threat evidence: {d['request_body']}\n"
+                f"Threat timestamp: {d['received_at']}\n"
+                f"Threat IP: {d['client_ip']}\n"
+                f"Threat method: {d['method']}\n"
+                f"Threat status code: {d['status_code']}\n",
+            )
         records.append(json.dumps(d, ensure_ascii=False, separators=(",", ":")) + "\n")
 
     log_dir = os.getenv("TRAFFIC_LOG_DIR") or "./traffic_logs"

@@ -108,7 +108,21 @@ async def ingest_logs(
         d = log.model_dump() if hasattr(log, "model_dump") else log.dict()
         d["received_at"] = ts
         d["threats"] = check_for_threats(d["url"], d["request_body"])
-        if sum(d["threats"].values()) > 0:
+        watson_response = requests.post(
+            os.getenv("WATSON_API_URL"),
+            json={
+                "client_ip": d["client_ip"],
+                "method": d["method"],
+                "url": d["url"],
+                "headers": d["headers"],
+                "request_body": d["request_body"],
+                "status_code": d["status_code"],
+                "process_time_ms": d["process_time_ms"],
+            },
+        )
+        watson_data = watson_response.json()
+        d["watson"] = watson_data
+        if sum(d["threats"].values()) > 0 or watson_data["anomaly"]:
             email_sender = smtplib.SMTP(
                 os.getenv("EMAIL_SERVER"), os.getenv("EMAIL_PORT")
             )
@@ -126,20 +140,6 @@ async def ingest_logs(
                 f"Threat status code: {d['status_code']}\n",
             )
 
-        watson_response = requests.post(
-            os.getenv("WATSON_API_URL"),
-            data={
-                "client_ip": d["client_ip"],
-                "method": d["method"],
-                "url": d["url"],
-                "headers": d["headers"],
-                "request_body": d["request_body"],
-                "status_code": d["status_code"],
-                "process_time_ms": d["process_time_ms"],
-            },
-        )
-        watson_data = watson_response.json()
-        d["watson"] = watson_data
         records.append(json.dumps(d, ensure_ascii=False, separators=(",", ":")) + "\n")
 
     log_dir = os.getenv("TRAFFIC_LOG_DIR") or "./traffic_logs"
